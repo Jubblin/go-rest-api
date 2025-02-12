@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"go-rest-api/controllers"
 	_ "go-rest-api/docs"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -16,9 +18,15 @@ import (
 // @host            localhost:8080
 // @BasePath        /api/v1
 func main() {
+
+	for _ , arg := range os.Args {
+		if arg == "healthcheck" {
+			fmt.Println("OK")
+			os.Exit(0)
+		}
+	}	
+	
 	router := gin.Default()
-
-
 	// Redirect root to Swagger docs
 	router.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
