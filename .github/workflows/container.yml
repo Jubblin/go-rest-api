@@ -166,7 +166,7 @@ jobs:
           cosign upload-blob --sbom container-sbom.cdx.json "${TAGS}@${DIGEST}"
 
       - name: Upload SBOMs as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sboms
           path: |
