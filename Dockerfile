@@ -2,7 +2,7 @@
 FROM golang:1.24-alpine AS builder
 
 # Install ObjectBox dependencies
-RUN apk add --no-cache curl build-base git
+RUN apk add --no-cache curl build-base git bash
 
 # Install ObjectBox
 RUN curl -Ls https://raw.githubusercontent.com/objectbox/objectbox-go/main/install.sh | sh
@@ -25,10 +25,10 @@ RUN go generate ./...
 RUN CGO_ENABLED=1 GOOS=linux go build -o main .
 
 # Final stage
-FROM alpine:latest
+FROM alpine:1.2.1
 
-# Install ObjectBox runtime dependencies
-RUN apk add --no-cache libobjectbox
+# Install ObjectBox
+RUN curl -Ls https://raw.githubusercontent.com/objectbox/objectbox-go/main/install.sh | sh
 
 WORKDIR /app
 
