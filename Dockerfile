@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 # Install ObjectBox dependencies
 RUN apk add --no-cache curl build-base git
