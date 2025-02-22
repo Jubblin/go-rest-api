@@ -4,20 +4,33 @@ import (
 	"fmt"
 	"go-rest-api/controllers"
 	_ "go-rest-api/docs"
+	"log"
 	"net/http"
 	"os"
+
+	"go-rest-api/db"
+	"go-rest-api/metrics"
+	"go-rest-api/middleware"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title           Book API
+// @title           Activity API
 // @version         1.0
-// @description     A simple book management API.
+// @description     An API for tracking device activities and usage statistics.
 // @host            localhost:8080
 // @BasePath        /api/v1
 func main() {
+	// Initialize database
+	if err := db.InitDB(); err != nil {
+		log.Fatal(err)
+	}
+	defer db.CloseDB()
+
+	// Initialize activity controller
+	controllers.InitActivityController(db.OB)
 
 	for _ , arg := range os.Args {
 		if arg == "healthcheck" {
@@ -26,21 +39,35 @@ func main() {
 		}
 	}	
 	
+	// Initialize Prometheus metrics
+	metrics.Init()
+	
 	router := gin.Default()
 	// Redirect root to Swagger docs
 	router.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
 	})
+	// Add Prometheus middleware to all routes
+	router.Use(middleware.PrometheusMiddleware())
+
 	// API v1 routes
 	v1 := router.Group("/api/v1")
 	{
-		books := v1.Group("/books")
+		stats := v1.Group("/stats")
 		{
-			books.GET("", controllers.GetBooks)
-			books.GET("/:id", controllers.GetBook)
-			books.POST("", controllers.CreateBook)
-			books.PUT("/:id", controllers.UpdateBook)
-			books.DELETE("/:id", controllers.DeleteBook)
+			stats.POST("", controllers.CreateStats)
+			stats.GET("", controllers.GetAllStats)
+			stats.GET("/endpoints/:endpoint", controllers.GetStatsByEndpoint)
+			stats.DELETE("/endpoints/:endpoint", controllers.DeleteStatsByEndpoint)
+			stats.DELETE("/:id", controllers.DeleteStats)
+		}
+		activities := v1.Group("/activities")
+		{
+			activities.POST("", controllers.CreateActivity)
+			activities.GET("", controllers.GetAllActivities)
+			activities.GET("/device/:device", controllers.GetActivitiesByDevice)
+			activities.GET("/grid/:grid", controllers.GetActivitiesByGrid)
+			activities.DELETE("/:id", controllers.DeleteActivity)
 		}
 		v1.GET("/health", func(c *gin.Context) {
 			c.Redirect(http.StatusMovedPermanently, "/health")
@@ -49,6 +76,9 @@ func main() {
 
 	// Health check
 	router.GET("/health", controllers.HealthCheck)
+
+	// Add metrics endpoint
+	router.GET("/metrics", metrics.PrometheusHandler())
 
 	// Swagger documentation route
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

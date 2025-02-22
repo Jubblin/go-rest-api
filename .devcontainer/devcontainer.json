@@ -16,7 +16,8 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"onCreateCommand": "go install github.com/swaggo/swag/cmd/swag@latest",
-	"postCreateCommand": "swag init -g main.go",
+	"postCreateCommand": "swag init -g main.go && curl -Ls https://raw.githubusercontent.com/objectbox/objectbox-go/main/install.sh | bash && sudo apt-get update && sudo apt-get upgrade -y",
+
 	"postStartCommand": "go version"
 	// Configure tool-specific properties.
 	// "customizations": {},

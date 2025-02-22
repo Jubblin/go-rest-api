@@ -1,35 +1,48 @@
 basePath: /api/v1
 definitions:
-  models.Book:
+  models.DeviceActivity:
     properties:
-      author:
+      action:
         type: string
-      description:
+      deviceName:
+        type: string
+      gridName:
+        type: string
+      headers:
+        description: Store as JSON string
+        type: string
+      id:
+        type: integer
+      sourceIP:
+        type: string
+      timestamp:
+        type: string
+      uniqueId:
+        type: string
+    type: object
+  models.UsageStats:
+    properties:
+      endpoint:
         type: string
       id:
         type: string
-      price:
-        type: number
-      title:
+      method:
         type: string
-    required:
-    - author
-    - description
-    - price
-    - title
+      status:
+        type: integer
+      timestamp:
+        type: string
     type: object
 host: localhost:8080
 info:
   contact: {}
-  description: A simple book management API.
-  title: Book API
+  description: An API for tracking device activities and usage statistics.
+  title: Activity API
   version: "1.0"
 paths:
-  /books:
+  /activities:
     get:
-      consumes:
-      - application/json
-      description: Returns a list of all books
+      description: Retrieves all recorded device activities
       produces:
       - application/json
       responses:
@@ -37,43 +50,55 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Book'
+              $ref: '#/definitions/models.DeviceActivity'
             type: array
-      summary: Get all books
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all activities
       tags:
-      - books
+      - activities
     post:
       consumes:
       - application/json
-      description: Creates a new book with the provided details
+      description: Records a new device activity with headers
       parameters:
-      - description: Book object
+      - description: Activity Data
         in: body
-        name: book
+        name: activity
         required: true
         schema:
-          $ref: '#/definitions/models.Book'
+          $ref: '#/definitions/models.DeviceActivity'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.Book'
+            $ref: '#/definitions/models.DeviceActivity'
         "400":
           description: Bad Request
           schema:
-            type: string
-      summary: Create a new book
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new activity
       tags:
-      - books
-  /books/{id}:
+      - activities
+  /activities/{id}:
     delete:
-      consumes:
-      - application/json
-      description: Deletes a book by its ID
+      description: Deletes a specific activity by ID
       parameters:
-      - description: Book ID
+      - description: Activity ID
         in: path
         name: id
         required: true
@@ -83,21 +108,28 @@ paths:
       responses:
         "204":
           description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
-            type: string
-      summary: Delete a book
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete an activity
       tags:
-      - books
+      - activities
+  /activities/device/{device}:
     get:
-      consumes:
-      - application/json
-      description: Returns a single book by its ID
+      description: Retrieves activities for a specific device
       parameters:
-      - description: Book ID
+      - description: Device Name
         in: path
-        name: id
+        name: device
         required: true
         type: string
       produces:
@@ -106,44 +138,45 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Book'
-        "404":
-          description: Not Found
+            items:
+              $ref: '#/definitions/models.DeviceActivity'
+            type: array
+        "500":
+          description: Internal Server Error
           schema:
-            type: string
-      summary: Get a book by ID
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get activities by device
       tags:
-      - books
-    put:
-      consumes:
-      - application/json
-      description: Updates a book's details by its ID
+      - activities
+  /activities/grid/{grid}:
+    get:
+      description: Retrieves activities for a specific grid
       parameters:
-      - description: Book ID
+      - description: Grid Name
         in: path
-        name: id
+        name: grid
         required: true
         type: string
-      - description: Book object
-        in: body
-        name: book
-        required: true
-        schema:
-          $ref: '#/definitions/models.Book'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Book'
-        "404":
-          description: Not Found
+            items:
+              $ref: '#/definitions/models.DeviceActivity'
+            type: array
+        "500":
+          description: Internal Server Error
           schema:
-            type: string
-      summary: Update a book
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get activities by grid
       tags:
-      - books
+      - activities
   /health:
     get:
       consumes:
@@ -161,4 +194,118 @@ paths:
       summary: Health check endpoint
       tags:
       - health
+  /stats:
+    get:
+      description: Retrieves all usage statistics
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UsageStats'
+            type: array
+      summary: Get all statistics
+      tags:
+      - stats
+    post:
+      consumes:
+      - application/json
+      description: Records new usage statistics
+      parameters:
+      - description: Stats Data
+        in: body
+        name: stats
+        required: true
+        schema:
+          $ref: '#/definitions/models.UsageStats'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UsageStats'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create usage statistics
+      tags:
+      - stats
+  /stats/{id}:
+    delete:
+      description: Deletes specific statistics by ID
+      parameters:
+      - description: Stats ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete statistics
+      tags:
+      - stats
+  /stats/endpoints/{endpoint}:
+    delete:
+      description: Deletes all statistics for a specific endpoint
+      parameters:
+      - description: Endpoint Path
+        in: path
+        name: endpoint
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete statistics by endpoint
+      tags:
+      - stats
+    get:
+      description: Retrieves statistics for a specific endpoint
+      parameters:
+      - description: Endpoint Path
+        in: path
+        name: endpoint
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UsageStats'
+            type: array
+      summary: Get statistics by endpoint
+      tags:
+      - stats
 swagger: "2.0"

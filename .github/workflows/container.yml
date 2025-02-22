@@ -1,0 +1,178 @@
+name: Container Build & Security
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Dockerfile'
+      - '.github/workflows/container.yml'
+      - '**.go'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  analyze:
+    name: Analyze Container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          format: sarif
+          output-file: hadolint-results.sarif
+          no-fail: true
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Checkov scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile
+          output_format: sarif
+          output_file: checkov-results.sarif
+          
+      - name: Upload Hadolint scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: hadolint-results.sarif
+          category: hadolint
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+
+      - name: Upload Checkov scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: checkov-results.sarif
+          category: checkov
+
+  build:
+    name: Build, Sign & Push Container
+    needs: analyze
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # Required for keyless signing
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=sha,format=long
+
+      - name: Build and scan with Copacetic
+        uses: github/copacetic-action@v1
+        with:
+          docker-image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          fail-on-severity: high
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.1.1
+
+      - name: Generate code SBOM (SPDX)
+        uses: anchore/syft-action@v0.6.0
+        with:
+          path: .
+          format: spdx-json
+          output: code-sbom.spdx.json
+
+      - name: Generate code SBOM (CycloneDX)
+        uses: CycloneDX/gh-gomod-generate-sbom@v1
+        with:
+          version: v1
+          args: mod -licenses -json -output code-sbom.cdx.json
+          
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          sbom: true
+          provenance: true
+
+      - name: Generate container SBOM (CycloneDX)
+        if: github.event_name != 'pull_request'
+        uses: anchore/syft-action@v0.6.0
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: cyclonedx-json
+          output: container-sbom.cdx.json
+
+      - name: Sign SBOMs
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          cosign sign --yes "${TAGS}@${DIGEST}"
+          cosign sign-blob --yes code-sbom.spdx.json > code-sbom.spdx.sig
+          cosign sign-blob --yes code-sbom.cdx.json > code-sbom.cdx.sig
+          cosign sign-blob --yes container-sbom.cdx.json > container-sbom.cdx.sig
+          cosign upload-blob --sbom code-sbom.spdx.json "${TAGS}@${DIGEST}"
+          cosign upload-blob --sbom code-sbom.cdx.json "${TAGS}@${DIGEST}"
+          cosign upload-blob --sbom container-sbom.cdx.json "${TAGS}@${DIGEST}"
+
+      - name: Upload SBOMs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sboms
+          path: |
+            code-sbom.spdx.json
+            code-sbom.spdx.sig
+            code-sbom.cdx.json
+            code-sbom.cdx.sig
+            container-sbom.cdx.json
+            container-sbom.cdx.sig 

@@ -1,0 +1,52 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - objectbox-data:/app/objectbox
+    healthcheck:
+      test: ["CMD", "/app/main", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grid:
+    image: asterics/asterics-grid:latest
+    ports:
+      - "8082:80"
+    volumes:
+      - grid-data:/app/data
+    environment:
+      - GRID_DATA_DIR=/app/data
+      - GRID_MODE=local
+    depends_on:
+      - api
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+volumes:
+  objectbox-data:
+  grid-data:
+  prometheus-data:
+  grafana-data: 

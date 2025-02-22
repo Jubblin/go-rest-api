@@ -1,0 +1,71 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:2906110396233178886",
+      "lastPropertyId": "8:4996867769747770200",
+      "name": "DeviceActivity",
+      "properties": [
+        {
+          "id": "1:4132809060673372632",
+          "name": "Id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8395261497107256084",
+          "name": "UniqueId",
+          "indexId": "1:1580507996290653868",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:207645094317886919",
+          "name": "SourceIP",
+          "type": 9
+        },
+        {
+          "id": "4:4014128336778729508",
+          "name": "DeviceName",
+          "indexId": "2:1468695394773926369",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "5:7529419088693152042",
+          "name": "GridName",
+          "indexId": "3:5847086806180283837",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "6:5276800250942670244",
+          "name": "Action",
+          "type": 9
+        },
+        {
+          "id": "7:2732099102083057548",
+          "name": "Headers",
+          "type": 9
+        },
+        {
+          "id": "8:4996867769747770200",
+          "name": "Timestamp",
+          "type": 10
+        }
+      ]
+    }
+  ],
+  "lastEntityId": "1:2906110396233178886",
+  "lastIndexId": "3:5847086806180283837",
+  "lastRelationId": "",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

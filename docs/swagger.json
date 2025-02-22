@@ -1,41 +1,47 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "A simple book management API.",
-        "title": "Book API",
+        "description": "An API for tracking device activities and usage statistics.",
+        "title": "Activity API",
         "contact": {},
         "version": "1.0"
     },
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
-        "/books": {
+        "/activities": {
             "get": {
-                "description": "Returns a list of all books",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Retrieves all recorded device activities",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "activities"
                 ],
-                "summary": "Get all books",
+                "summary": "Get all activities",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Book"
+                                "$ref": "#/definitions/models.DeviceActivity"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
                 }
             },
             "post": {
-                "description": "Creates a new book with the provided details",
+                "description": "Records a new device activity with headers",
                 "consumes": [
                     "application/json"
                 ],
@@ -43,17 +49,17 @@
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "activities"
                 ],
-                "summary": "Create a new book",
+                "summary": "Create a new activity",
                 "parameters": [
                     {
-                        "description": "Book object",
-                        "name": "book",
+                        "description": "Activity Data",
+                        "name": "activity",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Book"
+                            "$ref": "#/definitions/models.DeviceActivity"
                         }
                     }
                 ],
@@ -61,36 +67,45 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Book"
+                            "$ref": "#/definitions/models.DeviceActivity"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
             }
         },
-        "/books/{id}": {
+        "/activities/device/{device}": {
             "get": {
-                "description": "Returns a single book by its ID",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Retrieves activities for a specific device",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "activities"
                 ],
-                "summary": "Get a book by ID",
+                "summary": "Get activities by device",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Book ID",
-                        "name": "id",
+                        "description": "Device Name",
+                        "name": "device",
                         "in": "path",
                         "required": true
                     }
@@ -99,78 +114,79 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Book"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceActivity"
+                            }
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
-            },
-            "put": {
-                "description": "Updates a book's details by its ID",
-                "consumes": [
-                    "application/json"
-                ],
+            }
+        },
+        "/activities/grid/{grid}": {
+            "get": {
+                "description": "Retrieves activities for a specific grid",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "activities"
                 ],
-                "summary": "Update a book",
+                "summary": "Get activities by grid",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Book ID",
-                        "name": "id",
+                        "description": "Grid Name",
+                        "name": "grid",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Book object",
-                        "name": "book",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.Book"
-                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Book"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceActivity"
+                            }
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
-            },
+            }
+        },
+        "/activities/{id}": {
             "delete": {
-                "description": "Deletes a book by its ID",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Deletes a specific activity by ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "activities"
                 ],
-                "summary": "Delete a book",
+                "summary": "Delete an activity",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Book ID",
+                        "description": "Activity ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -180,10 +196,22 @@
                     "204": {
                         "description": "No Content"
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -214,31 +242,228 @@
                     }
                 }
             }
+        },
+        "/stats": {
+            "get": {
+                "description": "Retrieves all usage statistics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Get all statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UsageStats"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Records new usage statistics",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Create usage statistics",
+                "parameters": [
+                    {
+                        "description": "Stats Data",
+                        "name": "stats",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UsageStats"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.UsageStats"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/endpoints/{endpoint}": {
+            "get": {
+                "description": "Retrieves statistics for a specific endpoint",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Get statistics by endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint Path",
+                        "name": "endpoint",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.UsageStats"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes all statistics for a specific endpoint",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Delete statistics by endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint Path",
+                        "name": "endpoint",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/stats/{id}": {
+            "delete": {
+                "description": "Deletes specific statistics by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "stats"
+                ],
+                "summary": "Delete statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Stats ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "models.Book": {
+        "models.DeviceActivity": {
             "type": "object",
-            "required": [
-                "author",
-                "description",
-                "price",
-                "title"
-            ],
             "properties": {
-                "author": {
+                "action": {
                     "type": "string"
                 },
-                "description": {
+                "deviceName": {
+                    "type": "string"
+                },
+                "gridName": {
+                    "type": "string"
+                },
+                "headers": {
+                    "description": "Store as JSON string",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "sourceIP": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "uniqueId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UsageStats": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "price": {
-                    "type": "number"
+                "method": {
+                    "type": "string"
                 },
-                "title": {
+                "status": {
+                    "type": "integer"
+                },
+                "timestamp": {
                     "type": "string"
                 }
             }
