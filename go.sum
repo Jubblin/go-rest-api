@@ -78,10 +78,10 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
-github.com/objectbox/objectbox-generator v0.14.0 h1:+fr7vOFsdz7d/HWZN3ZLjLnGJ8TviliRyeBHlkL/J40=
-github.com/objectbox/objectbox-generator v0.14.0/go.mod h1:yMFFd/okhMBw02p6ZJJAmfblqyoQHjfYJie95DQbGn0=
-github.com/objectbox/objectbox-go v1.8.1 h1:Dl9cXJe4sZKz2XaOFUHTftgicatiBpUex+KLbDTS1rU=
-github.com/objectbox/objectbox-go v1.8.1/go.mod h1:FvnhelfA+S8zdGo916Z/WpPhM8AoMGP8vbXnIAj1jGo=
+github.com/objectbox/objectbox-generator/v4 v4.0.0 h1:7V7t7mkGfZ0fSNhaOuOQWKNfPnq8Q7mC+Uzo9ciq5To=
+github.com/objectbox/objectbox-generator/v4 v4.0.0/go.mod h1:paUROSAShse/S8vIhpCyg6leDlZR/C7zOusTeK5YOEY=
+github.com/objectbox/objectbox-go v1.9.0 h1:ubyUlgx+9Y1hkf+q0cmBN01VZFhpqOEwWE5xgrIvCpM=
+github.com/objectbox/objectbox-go v1.9.0/go.mod h1:hvJc0nI2o3x2uTrWZYlrZ/t8xsQIhNUrEiou732FmJg=
 github.com/pelletier/go-toml/v2 v2.2.3 h1:YmeHyLY8mFWbdkNWwpr+qIL2bEqT0o95WSdkNHvL12M=
 github.com/pelletier/go-toml/v2 v2.2.3/go.mod h1:MfCQTFTvCcUyyvvwm1+G6H/jORL20Xlb6rzQu9GuUkc=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
