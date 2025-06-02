@@ -25,7 +25,7 @@ RUN go generate ./...
 RUN CGO_ENABLED=1 GOOS=linux go build -o main .
 
 # Final stage
-FROM alpine:3.21.3
+FROM alpine:3.22.0
 
 # Install ObjectBox
 RUN curl -Ls https://raw.githubusercontent.com/objectbox/objectbox-go/main/install.sh | sh
