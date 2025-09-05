@@ -177,16 +177,15 @@ jobs:
   #           container-sbom.cdx.json
   #           container-sbom.cdx.sig 
 
-  name: "build"
-on: [push, pull_request]
-env:
-  TRIVY_VERSION: 0.48.3
-  BUILDKIT_VERSION: 0.12.4
-  BATS_VERSION: 1.10.0
-permissions: read-all
-jobs:
   build:
     name: build
+
+    env:
+      TRIVY_VERSION: 0.48.3
+      BUILDKIT_VERSION: 0.12.4
+      BATS_VERSION: 1.10.0
+    permissions: read-all
+
     runs-on: ubuntu-latest
     strategy:
       matrix:
