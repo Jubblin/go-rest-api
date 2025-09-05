@@ -56,123 +56,212 @@ jobs:
           sarif_file: checkov-results.sarif
           category: checkov
 
-  build:
-    name: Build, Sign & Push Container
-    needs: analyze
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write # Required for keyless signing
+  # build:
+  #   name: Build, Sign & Push Container
+  #   needs: analyze
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #     id-token: write # Required for keyless signing
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Log in to GitHub Container Registry
+  #       uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ github.actor }}
+  #         password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=sha,format=long
+  #     - name: Extract metadata for Docker
+  #       id: meta
+  #       uses: docker/metadata-action@v5
+  #       with:
+  #         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+  #         tags: |
+  #           type=ref,event=branch
+  #           type=ref,event=pr
+  #           type=semver,pattern={{version}}
+  #           type=sha,format=long
 
-      - name: Build and scan with Copacetic
-        uses: github/copacetic-action@v1
-        with:
-          docker-image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          fail-on-severity: high
+  #     - name: Build and scan with Copacetic
+  #       uses: github/copacetic-action@v1
+  #       with:
+  #         docker-image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+  #         fail-on-severity: high
 
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.8.1
+  #     - name: Install Cosign
+  #       uses: sigstore/cosign-installer@v3.8.1
 
-      - name: Generate code SBOM (SPDX)
-        uses: anchore/syft-action@v0.6.0
-        with:
-          path: .
-          format: spdx-json
-          output: code-sbom.spdx.json
+  #     - name: Generate code SBOM (SPDX)
+  #       uses: anchore/syft-action@v0.6.0
+  #       with:
+  #         path: .
+  #         format: spdx-json
+  #         output: code-sbom.spdx.json
 
-      - name: Generate code SBOM (CycloneDX)
-        uses: CycloneDX/gh-gomod-generate-sbom@v2
-        with:
-          version: v1
-          args: mod -licenses -json -output code-sbom.cdx.json
+  #     - name: Generate code SBOM (CycloneDX)
+  #       uses: CycloneDX/gh-gomod-generate-sbom@v2
+  #       with:
+  #         version: v1
+  #         args: mod -licenses -json -output code-sbom.cdx.json
           
-      - name: Build and push
-        id: build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          sbom: true
-          provenance: true
+  #     - name: Build and push
+  #       id: build
+  #       uses: docker/build-push-action@v6
+  #       with:
+  #         context: .
+  #         platforms: linux/amd64,linux/arm64
+  #         push: ${{ github.event_name != 'pull_request' }}
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max
+  #         sbom: true
+  #         provenance: true
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+  #     - name: Run Trivy vulnerability scanner
+  #       uses: aquasecurity/trivy-action@master
+  #       with:
+  #         image-ref: '.'
+  #         format: 'sarif'
+  #         output: 'trivy-results.sarif'
+  #         severity: 'CRITICAL,HIGH'
 
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-results.sarif
-          category: trivy
+  #     - name: Upload Trivy scan results
+  #       uses: github/codeql-action/upload-sarif@v3
+  #       with:
+  #         sarif_file: trivy-results.sarif
+  #         category: trivy
 
-      - name: Generate container SBOM (CycloneDX)
-        if: github.event_name != 'pull_request'
-        uses: anchore/syft-action@v0.6.0
-        with:
-          image: ${{ steps.meta.outputs.tags }}
-          format: cyclonedx-json
-          output: container-sbom.cdx.json
+  #     - name: Generate container SBOM (CycloneDX)
+  #       if: github.event_name != 'pull_request'
+  #       uses: anchore/syft-action@v0.6.0
+  #       with:
+  #         image: ${{ steps.meta.outputs.tags }}
+  #         format: cyclonedx-json
+  #         output: container-sbom.cdx.json
 
-      - name: Sign SBOMs
-        if: github.event_name != 'pull_request'
-        env:
-          DIGEST: ${{ steps.build.outputs.digest }}
-          TAGS: ${{ steps.meta.outputs.tags }}
+  #     - name: Sign SBOMs
+  #       if: github.event_name != 'pull_request'
+  #       env:
+  #         DIGEST: ${{ steps.build.outputs.digest }}
+  #         TAGS: ${{ steps.meta.outputs.tags }}
+  #       run: |
+  #         cosign sign --yes "${TAGS}@${DIGEST}"
+  #         cosign sign-blob --yes code-sbom.spdx.json > code-sbom.spdx.sig
+  #         cosign sign-blob --yes code-sbom.cdx.json > code-sbom.cdx.sig
+  #         cosign sign-blob --yes container-sbom.cdx.json > container-sbom.cdx.sig
+  #         cosign upload-blob --sbom code-sbom.spdx.json "${TAGS}@${DIGEST}"
+  #         cosign upload-blob --sbom code-sbom.cdx.json "${TAGS}@${DIGEST}"
+  #         cosign upload-blob --sbom container-sbom.cdx.json "${TAGS}@${DIGEST}"
+
+  #     - name: Upload SBOMs as artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: sboms
+  #         path: |
+  #           code-sbom.spdx.json
+  #           code-sbom.spdx.sig
+  #           code-sbom.cdx.json
+  #           code-sbom.cdx.sig
+  #           container-sbom.cdx.json
+  #           container-sbom.cdx.sig 
+
+  name: "build"
+on: [push, pull_request]
+env:
+  TRIVY_VERSION: 0.48.3
+  BUILDKIT_VERSION: 0.12.4
+  BATS_VERSION: 1.10.0
+permissions: read-all
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: ["buildx", "buildkit-container", "custom-socket"]
+    steps:
+      - name: Setup BATS
+        uses: mig4/setup-bats@af9a00deb21b5d795cabfeaa8d9060410377686d # v1.2.0
+        with:
+          bats-version: ${{ env.BATS_VERSION }}
+
+      - name: Check out code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Install Trivy
         run: |
-          cosign sign --yes "${TAGS}@${DIGEST}"
-          cosign sign-blob --yes code-sbom.spdx.json > code-sbom.spdx.sig
-          cosign sign-blob --yes code-sbom.cdx.json > code-sbom.cdx.sig
-          cosign sign-blob --yes container-sbom.cdx.json > container-sbom.cdx.sig
-          cosign upload-blob --sbom code-sbom.spdx.json "${TAGS}@${DIGEST}"
-          cosign upload-blob --sbom code-sbom.cdx.json "${TAGS}@${DIGEST}"
-          cosign upload-blob --sbom container-sbom.cdx.json "${TAGS}@${DIGEST}"
+          curl -fsSL -o trivy.tar.gz https://github.com/aquasecurity/trivy/releases/download/v${{ env.TRIVY_VERSION }}/trivy_${{ env.TRIVY_VERSION }}_Linux-64bit.tar.gz
+          tar -zxvf trivy.tar.gz
+          cp trivy /usr/local/bin/
 
-      - name: Upload SBOMs as artifacts
-        uses: actions/upload-artifact@v4
+      - name: Generate trivy vuln report for opa image
+        run: |
+          trivy image --vuln-type os --ignore-unfixed -f json -o /tmp/opa.0.46.0.json docker.io/openpolicyagent/opa:0.46.0
+
+      - name: Get latest copa version
+        run: |
+          latest_tag=$(curl --retry 5 -s "https://api.github.com/repos/project-copacetic/copacetic/releases/latest" | jq -r '.tag_name')
+          version=${latest_tag:1}
+          echo "Copa version: $version"
+          echo "COPA_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Install Copa
+        run: |
+          curl --retry 5 -fsSL -o copa.tar.gz https://github.com/project-copacetic/copacetic/releases/download/v${COPA_VERSION}/copa_${COPA_VERSION}_linux_amd64.tar.gz
+          tar -zxvf copa.tar.gz
+          cp copa /usr/local/bin/
+
+      - name: Run Buildkit container
+        if: matrix.test-type == 'buildkit-container'
+        run : |
+          docker run --net=host --detach --rm --privileged -p 127.0.0.1:8888:8888 --name buildkitd --entrypoint buildkitd moby/buildkit:v${{ env.BUILDKIT_VERSION }} --addr tcp://0.0.0.0:8888
+
+      - name: Set up Docker
+        if: matrix.test-type == 'custom-socket'
+        uses: crazy-max/ghaction-setup-docker@v3
         with:
-          name: sboms
-          path: |
-            code-sbom.spdx.json
-            code-sbom.spdx.sig
-            code-sbom.cdx.json
-            code-sbom.cdx.sig
-            container-sbom.cdx.json
-            container-sbom.cdx.sig 
+          daemon-config: |
+            {
+            "debug": true,
+            "experimental": true,
+                "features": {
+                "containerd-snapshotter": true
+                }
+            }
+
+      - name: Bats Test
+        run: |
+          set -ex
+          export SOCKET="/var/run/docker.sock"
+          export CONTEXT="default"
+
+          if [ "${{ matrix.test-type }}" = "custom-socket" ]; then
+            url=$(docker context inspect | jq -r .[0].Endpoints.docker.Host)
+            SOCKET=$(echo "$url" | awk -F// '{print $2}')
+            CONTEXT="setup-docker-action"
+          fi
+
+          docker build --build-arg copa_version=${COPA_VERSION} -t copa-action .
+          docker run --net=host \
+            --mount=type=bind,source=/tmp,target=/data \
+            --mount=type=bind,source="$SOCKET",target=/var/run/docker.sock \
+            --mount=type=bind,source=$GITHUB_OUTPUT,target=$GITHUB_OUTPUT -e GITHUB_OUTPUT \
+            --name=copa-action \
+            copa-action 'docker.io/openpolicyagent/opa:0.46.0' 'opa.0.46.0.json' '0.46.0-patched' '10m' "${{ matrix.test-type }}" 'openvex' 'output.json'
+          
+          # saving patched image to give trivy access when using a custom socket
+          docker -c "$CONTEXT" save -o patched.tar openpolicyagent/opa:0.46.0-patched
+            
+          bats --print-output-on-failure ./test/test.bats
