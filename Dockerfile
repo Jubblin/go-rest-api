@@ -1,6 +1,6 @@
 # Build stage
 # checkov:skip=CKV_DOCKER_2: Healthcheck not required for this application
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Install ObjectBox dependencies
 RUN apk add --no-cache curl build-base git bash
