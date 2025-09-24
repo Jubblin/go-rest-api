@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/google/flatbuffers v25.2.10+incompatible
+	github.com/google/flatbuffers v25.9.23+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/objectbox/objectbox-go v1.9.0
 	github.com/prometheus/client_golang v1.23.1
